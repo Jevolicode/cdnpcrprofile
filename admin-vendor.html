@@ -514,9 +514,18 @@ function renderTable() {
     </td>
   </tr>`).join(''));
 }
+function formatRp(val) {
+  if (!val) return '';
+  const s = String(val).trim();
+  // Jika sudah ada Rp, bersihkan dulu lalu format ulang
+  const clean = s.replace(/Rp\.?\s*/i, '').trim();
+  return 'Rp. ' + clean;
+}
 function price(v) {
   if (!v.priceMin && !v.priceMax) return '<span style="color:var(--muted)">–</span>';
-  let s = v.priceMin && v.priceMax ? `${v.priceMin} – ${v.priceMax}` : (v.priceMin || v.priceMax);
+  let s = v.priceMin && v.priceMax
+    ? `${formatRp(v.priceMin)} – ${formatRp(v.priceMax)}`
+    : formatRp(v.priceMin || v.priceMax);
   return v.unit ? `${s} / ${v.unit}` : s;
 }
 function x(s) {
