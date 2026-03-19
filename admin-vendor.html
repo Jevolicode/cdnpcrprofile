@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Database Vendor PCR</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080808;
+  --surface:  #111111;
+  --surface2: #1a1a1a;
+  --surface3: #222222;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #efefef;
+  --muted:    #666666;
+  --muted2:   #3a3a3a;
+  --red:      #e02020;
+  --red2:     #ff5555;
+  --red-bg:   rgba(224,32,32,0.10);
+  --red-bdr:  rgba(224,32,32,0.25);
+  --green:    #4ade80;
+  --radius:   10px;
+  --radius-lg:14px;
+  --shadow:   0 4px 24px rgba(0,0,0,0.5);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; }
+button { font-family:'DM Sans',sans-serif; cursor:pointer; border:none; outline:none; }
+input, select { font-family:'DM Sans',sans-serif; outline:none; border:none; }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:99px; }
+
+/* LOGIN */
+#loginScreen {
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:20px;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(224,32,32,0.10), transparent 70%);
+}
+.login-box {
+  width:100%; max-width:400px;
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:var(--radius-lg); padding:40px;
+  box-shadow:var(--shadow);
+}
+.login-logo { display:flex; align-items:center; gap:12px; margin-bottom:32px; }
+.login-logo-icon {
+  width:42px; height:42px; background:var(--red); border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-weight:800; font-size:13px; color:#fff;
+  box-shadow:0 0 20px rgba(224,32,32,0.35);
+  flex-shrink:0;
+}
+.login-logo h2 { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
+.login-logo p { font-size:12px; color:var(--muted); margin-top:2px; }
+.login-box h3 { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; margin-bottom:6px; }
+.login-box .sub { font-size:13px; color:var(--muted); margin-bottom:28px; line-height:1.5; }
+.field { display:flex; flex-direction:column; gap:7px; margin-bottom:16px; }
+.field label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+.field input {
+  background:var(--surface2); border:1.5px solid var(--border2);
+  border-radius:var(--radius); padding:11px 14px;
+  color:var(--text); font-size:14px; transition:border-color .2s; width:100%;
+}
+.field input:focus { border-color:var(--red); }
+.field input::placeholder { color:var(--muted2); }
+.login-btn {
+  width:100%; padding:13px; background:var(--red); color:#fff;
+  border-radius:var(--radius); font-size:14px; font-weight:600;
+  transition:all .2s; margin-top:8px; letter-spacing:.02em;
+}
+.login-btn:hover { background:#c91a1a; box-shadow:0 4px 20px rgba(224,32,32,0.3); }
+.login-err {
+  display:none; margin-top:14px; padding:10px 14px;
+  background:rgba(224,32,32,0.08); border:1px solid var(--red-bdr);
+  border-radius:var(--radius); font-size:13px; color:var(--red2); text-align:center;
+}
+
+/* APP */
+#app { display:none; min-height:100vh; }
+
+/* HEADER */
+.app-header {
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:0 28px; height:60px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:100;
+}
+.header-left { display:flex; align-items:center; gap:12px; }
+.header-logo {
+  width:32px; height:32px; background:var(--red); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-weight:800; font-size:11px; color:#fff;
+  flex-shrink:0;
+}
+.header-title h1 { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
+.header-title p { font-size:11px; color:var(--muted); margin-top:1px; }
+.header-right { display:flex; align-items:center; gap:10px; }
+.admin-badge {
+  padding:5px 12px; background:var(--surface2); border:1px solid var(--border2);
+  border-radius:99px; font-size:11px; color:var(--muted);
+  display:flex; align-items:center; gap:6px;
+}
+.admin-badge::before {
+  content:''; width:6px; height:6px; background:var(--green);
+  border-radius:50%; box-shadow:0 0 6px var(--green);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.logout-btn {
+  padding:6px 14px; background:transparent;
+  border:1px solid var(--border2); border-radius:var(--radius);
+  font-size:12px; color:var(--muted); transition:all .2s;
+}
+.logout-btn:hover { border-color:var(--red-bdr); color:var(--red2); background:var(--red-bg); }
+
+/* MAIN */
+.app-main { padding:28px; max-width:1300px; width:100%; margin:0 auto; }
+
+/* STATS */
+.stats-row { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:24px; }
+.stat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:18px 20px; transition:border-color .2s;
+}
+.stat-card:hover { border-color:var(--border2); }
+.stat-num { font-family:'Syne',sans-serif; font-size:28px; font-weight:700; }
+.stat-label { font-size:11px; color:var(--muted); margin-top:4px; font-weight:500; text-transform:uppercase; letter-spacing:.04em; }
+.stat-card:first-child .stat-num { color:var(--red); }
+
+/* TOOLBAR */
+.toolbar { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+.search-wrap { flex:1; min-width:200px; position:relative; }
+.search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; font-size:14px; }
+.search-wrap input {
+  width:100%; background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:10px 14px 10px 36px;
+  color:var(--text); font-size:13px; transition:border-color .2s;
+}
+.search-wrap input:focus { border-color:var(--red); }
+.search-wrap input::placeholder { color:var(--muted); }
+.filter-sel {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:10px 14px;
+  color:var(--text); font-size:13px; cursor:pointer; min-width:140px;
+  transition:border-color .2s;
+}
+.filter-sel:focus { border-color:var(--red); }
+.filter-sel option { background:var(--surface2); }
+.tbtn {
+  padding:10px 16px; border-radius:var(--radius); font-size:13px; font-weight:500;
+  transition:all .2s; display:flex; align-items:center; gap:6px; white-space:nowrap;
+}
+.tbtn-add { background:var(--red); color:#fff; }
+.tbtn-add:hover { background:#c91a1a; }
+.tbtn-export { background:var(--surface); border:1.5px solid var(--border); color:var(--text); }
+.tbtn-export:hover { border-color:var(--border2); background:var(--surface2); }
+.tbtn-refresh { background:var(--surface); border:1.5px solid var(--border); color:var(--muted); }
+.tbtn-refresh:hover { border-color:var(--border2); color:var(--text); background:var(--surface2); }
+
+/* RESULT INFO */
+.result-info { font-size:12px; color:var(--muted); margin-bottom:10px; }
+.result-info b { color:var(--text); font-weight:600; }
+
+/* TABLE */
+.table-wrap {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); overflow:hidden;
+}
+table { width:100%; border-collapse:collapse; }
+thead tr { border-bottom:1px solid var(--border); }
+th {
+  padding:11px 16px; text-align:left; font-size:10px; font-weight:700;
+  color:var(--muted); text-transform:uppercase; letter-spacing:.08em;
+  background:var(--surface2); white-space:nowrap;
+}
+td { padding:13px 16px; font-size:13px; border-bottom:1px solid var(--border); vertical-align:middle; }
+tbody tr:last-child td { border-bottom:none; }
+tbody tr { transition:background .12s; }
+tbody tr:hover td { background:var(--surface2); }
+.td-num { color:var(--muted); font-size:12px; }
+.td-name { font-weight:600; }
+.td-prod { color:var(--muted); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.td-price { font-variant-numeric:tabular-nums; white-space:nowrap; font-size:12px; }
+.loc-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 10px; border-radius:99px; font-size:11px; font-weight:600;
+  background:var(--surface3); border:1px solid var(--border);
+}
+.abtn {
+  padding:5px 11px; border-radius:7px; font-size:12px; font-weight:500;
+  transition:all .15s; margin-right:3px;
+}
+.abtn-edit { background:var(--surface3); border:1px solid var(--border); color:var(--text); }
+.abtn-edit:hover { border-color:var(--border2); background:var(--surface2); }
+.abtn-del { background:rgba(224,32,32,0.08); border:1px solid rgba(224,32,32,0.15); color:#ff5555; }
+.abtn-del:hover { background:rgba(224,32,32,0.18); }
+.t-empty { text-align:center; padding:56px 20px; color:var(--muted); font-size:14px; }
+.t-empty span { display:block; font-size:30px; margin-bottom:10px; }
+.t-loading { text-align:center; padding:56px 20px; color:var(--muted); font-size:13px; }
+.t-error { text-align:center; padding:40px 24px; font-size:13px; line-height:1.8; color:#ff8080; }
+.t-error strong { display:block; font-size:15px; margin-bottom:8px; color:var(--red2); }
+
+/* MODAL */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.8); z-index:500;
+  align-items:center; justify-content:center; padding:20px;
+  backdrop-filter:blur(5px);
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:var(--radius-lg); padding:32px;
+  width:100%; max-width:520px; max-height:90vh; overflow-y:auto;
+  animation:fadeUp .2s ease;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+.modal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.modal-hdr h3 { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+.modal-x {
+  width:30px; height:30px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:7px; color:var(--muted); font-size:14px;
+  display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.modal-x:hover { border-color:var(--red-bdr); color:var(--red2); background:var(--red-bg); }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-grid .full { grid-column:1/-1; }
+.form-field { display:flex; flex-direction:column; gap:6px; }
+.form-field label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+.form-field input, .form-field select {
+  background:var(--surface2); border:1.5px solid var(--border2);
+  border-radius:var(--radius); padding:10px 13px;
+  color:var(--text); font-size:13px; transition:border-color .2s; width:100%;
+}
+.form-field input:focus, .form-field select:focus { border-color:var(--red); }
+.form-field input::placeholder { color:var(--muted2); }
+.form-field select option { background:var(--surface2); }
+.modal-footer { display:flex; gap:10px; margin-top:24px; justify-content:flex-end; }
+.mbtn-cancel {
+  padding:10px 20px; background:transparent; border:1.5px solid var(--border2);
+  border-radius:var(--radius); color:var(--muted); font-size:13px; font-weight:500;
+  transition:all .2s;
+}
+.mbtn-cancel:hover { background:var(--surface2); color:var(--text); }
+.mbtn-save {
+  padding:10px 24px; background:var(--red); color:#fff;
+  border-radius:var(--radius); font-size:13px; font-weight:600; transition:all .2s;
+}
+.mbtn-save:hover { background:#c91a1a; }
+.mbtn-save:disabled { opacity:.5; cursor:not-allowed; transform:none !important; }
+
+/* TOAST */
+#toast {
+  position:fixed; bottom:24px; right:24px; z-index:999;
+  padding:12px 20px; border-radius:var(--radius);
+  font-size:13px; font-weight:500;
+  background:var(--surface2); border:1px solid var(--border2);
+  box-shadow:var(--shadow); color:var(--text);
+  transform:translateY(20px); opacity:0; pointer-events:none;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  max-width:340px;
+}
+#toast.show { transform:none; opacity:1; }
+#toast.err { background:rgba(224,32,32,0.12); border-color:var(--red-bdr); color:var(--red2); }
+#toast.ok { background:rgba(74,222,128,0.08); border-color:rgba(74,222,128,0.2); color:var(--green); }
+
+@media(max-width:900px) {
+  .stats-row { grid-template-columns:repeat(3,1fr); }
+  .app-main { padding:16px; }
+  .app-header { padding:0 16px; }
+}
+@media(max-width:640px) {
+  .stats-row { grid-template-columns:repeat(2,1fr); }
+  .form-grid { grid-template-columns:1fr; }
+  .form-grid .full { grid-column:1; }
+  .admin-badge { display:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">PCR</div>
+      <div>
+        <h2>Admin Panel</h2>
+        <p>Database Vendor Pengadaan Barang</p>
+      </div>
+    </div>
+    <h3>Selamat Datang</h3>
+    <p class="sub">Masuk menggunakan akun administrator untuk mengelola data vendor.</p>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Masukkan username" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Masukkan password" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Masuk ke Dashboard →</button>
+    <p class="login-err" id="loginErr">⚠ Username atau password salah!</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header class="app-header">
+    <div class="header-left">
+      <div class="header-logo">PCR</div>
+      <div class="header-title">
+        <h1>Database Vendor</h1>
+        <p>Sistem Pengadaan Barang PCR</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="admin-badge">Administrator</div>
+      <button class="logout-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" id="s-total">–</div><div class="stat-label">Total Vendor</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-Medan">–</div><div class="stat-label">Medan</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-Riau">–</div><div class="stat-label">Riau</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-Kepri">–</div><div class="stat-label">Kepri</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-Nasional">–</div><div class="stat-label">Nasional</div></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Cari nama vendor atau produk..." oninput="renderTable()">
+      </div>
+      <select class="filter-sel" id="filterLoc" onchange="renderTable()">
+        <option value="">Semua Wilayah</option>
+        <option>Medan</option><option>Riau</option><option>Kepri</option><option>Nasional</option>
+      </select>
+      <button class="tbtn tbtn-refresh" onclick="loadData()">↺ Refresh</button>
+      <button class="tbtn tbtn-export" onclick="exportCSV()">📥 Export</button>
+      <button class="tbtn tbtn-add" onclick="openModal()">＋ Tambah Vendor</button>
+    </div>
+
+    <p class="result-info" id="resultInfo"></p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44px">#</th>
+            <th>Nama Vendor</th>
+            <th>Wilayah</th>
+            <th>Produk / Jasa</th>
+            <th>Estimasi Harga</th>
+            <th style="width:116px">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="6" class="t-loading">⏳ Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOut(event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3 id="modalTitle">Tambah Vendor</h3>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label>Nama Vendor</label>
+        <input type="text" id="fName" placeholder="Contoh: CV Maju Bersama">
+      </div>
+      <div class="form-field">
+        <label>Wilayah</label>
+        <select id="fLoc">
+          <option>Medan</option><option>Riau</option><option>Kepri</option><option>Nasional</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Satuan</label>
+        <input type="text" id="fUnit" placeholder="pcs / meter / set">
+      </div>
+      <div class="form-field full">
+        <label>Produk / Jasa</label>
+        <input type="text" id="fProduct" placeholder="Contoh: Alat Tulis Kantor">
+      </div>
+      <div class="form-field">
+        <label>Harga Minimum</label>
+        <input type="text" id="fMin" placeholder="Rp 10.000">
+      </div>
+      <div class="form-field">
+        <label>Harga Maksimum</label>
+        <input type="text" id="fMax" placeholder="Rp 50.000">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="mbtn-cancel" onclick="closeModal()">Batal</button>
+      <button class="mbtn-save" id="saveBtn" onclick="saveVendor()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjOpOla9lb9qqODBLxQYdhx61CBCZOXNKTMxg2WN0Mdgn8ePtunc1y2VPSwonXtl87/exec";
+const CREDS = { user: "Admin", pass: "Pcr@2024" };
+let vendors = [];
+let editId = null;
+
+/* ── SESSION ── */
+(function () {
+  if (sessionStorage.getItem('adminLoggedIn') === '1') showApp();
+})();
+
+/* ── AUTH ── */
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if (u === CREDS.user && p === CREDS.pass) {
+    sessionStorage.setItem('adminLoggedIn', '1');
+    showApp();
+  } else {
+    const err = document.getElementById('loginErr');
+    err.style.display = 'block';
+    setTimeout(() => err.style.display = 'none', 3000);
+  }
+}
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadData();
+}
+function doLogout() {
+  sessionStorage.removeItem('adminLoggedIn');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+/* ── LOAD DATA ── */
+async function loadData() {
+  setBody('<tr><td colspan="6" class="t-loading">⏳ Memuat data dari Google Sheets...</td></tr>');
+  document.getElementById('resultInfo').textContent = '';
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); } catch(e) { throw new Error('Response bukan JSON. Cek deployment GAS.'); }
+    vendors = json.data || json.vendors || (Array.isArray(json) ? json : []);
+    renderAll();
+    toast('✅ Data berhasil dimuat — ' + vendors.length + ' vendor', 'ok');
+  } catch (e) {
+    setBody(`<tr><td colspan="6" class="t-error">
+      <strong>❌ Gagal terhubung ke Google Sheets</strong>
+      Pesan error: ${e.message}<br><br>
+      Solusi: Buka Google Apps Script → Deploy → Manage Deployments<br>
+      Pastikan "Who has access" diset ke <strong>Anyone</strong> (bukan "Anyone with Google Account")
+    </td></tr>`);
+    document.getElementById('resultInfo').textContent = '';
+  }
+}
+function setBody(html) { document.getElementById('tableBody').innerHTML = html; }
+
+/* ── RENDER ── */
+function renderAll() { updateStats(); renderTable(); }
+function updateStats() {
+  document.getElementById('s-total').textContent = vendors.length;
+  ['Medan','Riau','Kepri','Nasional'].forEach(loc =>
+    document.getElementById('s-' + loc).textContent = vendors.filter(v => v.location === loc).length
+  );
+}
+function renderTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const loc = document.getElementById('filterLoc').value;
+  const list = vendors.filter(v => {
+    const mq = !q || (v.name||'').toLowerCase().includes(q) || (v.product||'').toLowerCase().includes(q);
+    const ml = !loc || v.location === loc;
+    return mq && ml;
+  });
+  document.getElementById('resultInfo').innerHTML =
+    `Menampilkan <b>${list.length}</b> dari <b>${vendors.length}</b> vendor`;
+  if (!list.length) {
+    setBody('<tr><td colspan="6" class="t-empty"><span>🔍</span>Tidak ada vendor yang cocok</td></tr>');
+    return;
+  }
+  setBody(list.map((v, i) => `<tr>
+    <td class="td-num">${i+1}</td>
+    <td class="td-name">${x(v.name)}</td>
+    <td><span class="loc-badge">📍 ${x(v.location)}</span></td>
+    <td class="td-prod">${x(v.product)}</td>
+    <td class="td-price">${price(v)}</td>
+    <td>
+      <button class="abtn abtn-edit" onclick="openModal('${x(v.id)}')">✏️ Edit</button>
+      <button class="abtn abtn-del" onclick="delVendor('${x(v.id)}')">🗑️</button>
+    </td>
+  </tr>`).join(''));
+}
+function price(v) {
+  if (!v.priceMin && !v.priceMax) return '<span style="color:var(--muted)">–</span>';
+  let s = v.priceMin && v.priceMax ? `${v.priceMin} – ${v.priceMax}` : (v.priceMin || v.priceMax);
+  return v.unit ? `${s} / ${v.unit}` : s;
+}
+function x(s) {
+  return String(s||'–').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── MODAL ── */
+function openModal(id = null) {
+  editId = id;
+  document.getElementById('modalTitle').textContent = id ? 'Edit Vendor' : 'Tambah Vendor';
+  if (id) {
+    const v = vendors.find(a => String(a.id) === String(id));
+    if (v) {
+      document.getElementById('fName').value    = v.name    || '';
+      document.getElementById('fLoc').value     = v.location|| 'Medan';
+      document.getElementById('fProduct').value = v.product || '';
+      document.getElementById('fMin').value     = v.priceMin|| '';
+      document.getElementById('fMax').value     = v.priceMax|| '';
+      document.getElementById('fUnit').value    = v.unit    || '';
+    }
+  } else {
+    ['fName','fProduct','fMin','fMax','fUnit'].forEach(f => document.getElementById(f).value = '');
+    document.getElementById('fLoc').value = 'Medan';
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('fName').focus(), 120);
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editId = null; }
+function closeModalOut(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+/* ── SAVE ── */
+async function saveVendor() {
+  const name    = document.getElementById('fName').value.trim();
+  const product = document.getElementById('fProduct').value.trim();
+  if (!name)    { toast('⚠ Nama vendor wajib diisi', 'err'); return; }
+  if (!product) { toast('⚠ Produk/jasa wajib diisi', 'err'); return; }
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  try {
+    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({
+      action: editId ? 'edit' : 'add',
+      id: editId,
+      name,
+      location: document.getElementById('fLoc').value,
+      product,
+      priceMin: document.getElementById('fMin').value,
+      priceMax: document.getElementById('fMax').value,
+      unit:     document.getElementById('fUnit').value
+    })});
+    closeModal();
+    await loadData();
+    toast(editId ? '✅ Vendor berhasil diperbarui!' : '✅ Vendor berhasil ditambahkan!', 'ok');
+  } catch(e) { toast('❌ Gagal menyimpan data', 'err'); }
+  finally { btn.disabled = false; btn.innerHTML = '💾 Simpan'; }
+}
+
+/* ── DELETE ── */
+async function delVendor(id) {
+  if (!confirm('Hapus vendor ini? Tindakan tidak bisa dibatalkan.')) return;
+  try {
+    await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'delete', id }) });
+    await loadData();
+    toast('🗑️ Vendor berhasil dihapus', 'ok');
+  } catch(e) { toast('❌ Gagal menghapus vendor', 'err'); }
+}
+
+/* ── EXPORT CSV ── */
+function exportCSV() {
+  if (!vendors.length) { toast('⚠ Tidak ada data untuk diekspor', 'err'); return; }
+  const headers = ['No','Nama Vendor','Wilayah','Produk / Jasa','Harga Min','Harga Max','Satuan'];
+  const rows = vendors.map((v,i) => [i+1, v.name||'', v.location||'', v.product||'', v.priceMin||'', v.priceMax||'', v.unit||'']);
+  const csv = [headers,...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = `vendor-pcr-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('📥 File berhasil diunduh', 'ok');
+}
+
+/* ── TOAST ── */
+let _tt;
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show' + (type ? ' '+type : '');
+  clearTimeout(_tt); _tt = setTimeout(() => t.className = '', 3500);
+}
+</script>
+</body>
+</html>

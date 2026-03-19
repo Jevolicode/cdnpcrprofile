@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database Vendor PCR</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080808;
+  --surface:  #111111;
+  --surface2: #1a1a1a;
+  --surface3: #222222;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #efefef;
+  --muted:    #666666;
+  --muted2:   #3a3a3a;
+  --red:      #e02020;
+  --red2:     #ff5555;
+  --red-bg:   rgba(224,32,32,0.10);
+  --red-bdr:  rgba(224,32,32,0.22);
+  --green:    #4ade80;
+  --radius:   10px;
+  --radius-lg:14px;
+  --shadow:   0 4px 24px rgba(0,0,0,0.5);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; }
+button { font-family:'DM Sans',sans-serif; cursor:pointer; border:none; outline:none; }
+input, select { font-family:'DM Sans',sans-serif; outline:none; border:none; }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:99px; }
+
+/* HEADER */
+.site-header {
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:0 28px; height:64px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:100;
+}
+.header-brand { display:flex; align-items:center; gap:12px; }
+.brand-icon {
+  width:36px; height:36px; background:var(--red); border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-weight:800; font-size:12px; color:#fff;
+  box-shadow:0 0 16px rgba(224,32,32,0.3); flex-shrink:0;
+}
+.brand-text h1 { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
+.brand-text p { font-size:11px; color:var(--muted); margin-top:2px; }
+.header-badge {
+  padding:5px 14px; background:var(--red-bg); border:1px solid var(--red-bdr);
+  border-radius:99px; font-size:11px; color:var(--red2); font-weight:600;
+}
+
+/* HERO */
+.hero {
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(224,32,32,0.08), transparent 70%);
+  padding:52px 28px 36px;
+  text-align:center; border-bottom:1px solid var(--border);
+}
+.hero h2 {
+  font-family:'Syne',sans-serif; font-size:clamp(24px,4vw,36px);
+  font-weight:800; margin-bottom:10px;
+  background:linear-gradient(135deg, #fff 0%, #aaa 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.hero h2 span { -webkit-text-fill-color:var(--red); }
+.hero p { font-size:14px; color:var(--muted); line-height:1.6; max-width:480px; margin:0 auto; }
+
+/* SEARCH BAR */
+.search-section { padding:24px 28px; max-width:1200px; margin:0 auto; }
+.search-row { display:flex; gap:10px; flex-wrap:wrap; }
+.search-wrap { flex:1; min-width:200px; position:relative; }
+.search-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px; pointer-events:none; }
+.search-wrap input {
+  width:100%; background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:12px 14px 12px 38px;
+  color:var(--text); font-size:14px; transition:border-color .2s;
+}
+.search-wrap input:focus { border-color:var(--red); }
+.search-wrap input::placeholder { color:var(--muted); }
+.filter-sel {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:12px 14px;
+  color:var(--text); font-size:14px; cursor:pointer; min-width:150px;
+  transition:border-color .2s;
+}
+.filter-sel:focus { border-color:var(--red); }
+.filter-sel option { background:var(--surface2); }
+.btn-clear {
+  padding:12px 18px; background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); color:var(--muted); font-size:13px;
+  transition:all .2s;
+}
+.btn-clear:hover { border-color:var(--border2); color:var(--text); }
+
+/* STATS BAR */
+.stats-bar {
+  display:flex; gap:0; border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  background:var(--surface); overflow-x:auto;
+}
+.stat-item {
+  flex:1; min-width:100px; padding:14px 20px; text-align:center;
+  border-right:1px solid var(--border);
+  cursor:pointer; transition:background .15s;
+}
+.stat-item:last-child { border-right:none; }
+.stat-item:hover { background:var(--surface2); }
+.stat-item.active { background:var(--red-bg); border-bottom:2px solid var(--red); }
+.stat-item .num { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; }
+.stat-item.active .num { color:var(--red); }
+.stat-item .lbl { font-size:11px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:.05em; font-weight:600; }
+
+/* CONTENT */
+.content { padding:24px 28px; max-width:1200px; margin:0 auto; }
+.result-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:18px; flex-wrap:wrap; gap:10px;
+}
+.result-info { font-size:13px; color:var(--muted); }
+.result-info b { color:var(--text); font-weight:600; }
+.view-toggle { display:flex; gap:6px; }
+.vtbtn {
+  width:34px; height:34px; background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); color:var(--muted); font-size:16px;
+  display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.vtbtn.active { background:var(--red-bg); border-color:var(--red-bdr); color:var(--red2); }
+.vtbtn:hover:not(.active) { border-color:var(--border2); color:var(--text); }
+
+/* CARDS GRID */
+.cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+.vendor-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:20px;
+  transition:all .2s; position:relative; overflow:hidden;
+}
+.vendor-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, var(--red), transparent);
+  opacity:0; transition:opacity .2s;
+}
+.vendor-card:hover { border-color:var(--border2); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,0.3); }
+.vendor-card:hover::before { opacity:1; }
+.card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:12px; }
+.card-name { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; line-height:1.3; flex:1; }
+.card-loc {
+  padding:3px 9px; background:var(--surface3); border:1px solid var(--border);
+  border-radius:99px; font-size:10px; font-weight:600; color:var(--muted);
+  white-space:nowrap; flex-shrink:0;
+}
+.card-product { font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5; }
+.card-price-box {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:12px 14px;
+}
+.card-price-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; font-weight:700; margin-bottom:4px; }
+.card-price-value { font-size:14px; font-weight:600; color:var(--text); }
+.card-price-value .price-unit { font-size:11px; color:var(--muted); font-weight:400; margin-left:4px; }
+
+/* LIST VIEW */
+.list-view { display:none; }
+.list-view.active { display:block; }
+.cards-view { display:block; }
+.cards-view.hidden { display:none; }
+.list-table-wrap {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); overflow:hidden;
+}
+table { width:100%; border-collapse:collapse; }
+thead tr { border-bottom:1px solid var(--border); }
+th {
+  padding:11px 16px; text-align:left; font-size:10px; font-weight:700;
+  color:var(--muted); text-transform:uppercase; letter-spacing:.08em;
+  background:var(--surface2); white-space:nowrap;
+}
+td { padding:13px 16px; font-size:13px; border-bottom:1px solid var(--border); }
+tbody tr:last-child td { border-bottom:none; }
+tbody tr { transition:background .12s; }
+tbody tr:hover td { background:var(--surface2); }
+.td-num { color:var(--muted); font-size:12px; }
+.td-name { font-weight:600; }
+.td-prod { color:var(--muted); }
+.td-price { font-variant-numeric:tabular-nums; font-size:12px; white-space:nowrap; }
+.loc-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 10px; border-radius:99px; font-size:11px; font-weight:600;
+  background:var(--surface3); border:1px solid var(--border);
+}
+
+/* EMPTY / LOADING / ERROR */
+.state-box { text-align:center; padding:72px 20px; }
+.state-box .icon { font-size:36px; display:block; margin-bottom:12px; }
+.state-box .title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; margin-bottom:8px; }
+.state-box .desc { font-size:13px; color:var(--muted); line-height:1.7; max-width:420px; margin:0 auto; }
+.state-box .desc strong { color:var(--text); }
+.state-box .retry-btn {
+  margin-top:20px; padding:10px 24px; background:var(--red); color:#fff;
+  border-radius:var(--radius); font-size:13px; font-weight:600; transition:all .2s;
+}
+.state-box .retry-btn:hover { background:#c91a1a; }
+
+/* FOOTER */
+.site-footer {
+  margin-top:48px; padding:24px 28px;
+  border-top:1px solid var(--border); text-align:center;
+  font-size:12px; color:var(--muted);
+}
+
+@media(max-width:768px) {
+  .site-header { padding:0 16px; }
+  .hero { padding:36px 16px 28px; }
+  .search-section { padding:16px; }
+  .content { padding:16px; }
+  .cards-grid { grid-template-columns:1fr; }
+  .stats-bar { gap:0; }
+  .stat-item { min-width:80px; padding:12px 12px; }
+  .header-badge { display:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-brand">
+    <div class="brand-icon">PCR</div>
+    <div class="brand-text">
+      <h1>Database Vendor PCR</h1>
+      <p>Sistem Informasi Pengadaan Barang</p>
+    </div>
+  </div>
+  <div class="header-badge">🔓 Publik</div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <h2>Temukan <span>Vendor</span> Terpercaya</h2>
+  <p>Database lengkap vendor pengadaan barang PCR. Cari berdasarkan wilayah, produk, atau estimasi harga.</p>
+</div>
+
+<!-- SEARCH -->
+<div class="search-section">
+  <div class="search-row">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Cari nama vendor atau produk..." oninput="render()">
+    </div>
+    <select class="filter-sel" id="filterLoc" onchange="render()">
+      <option value="">Semua Wilayah</option>
+      <option>Medan</option><option>Riau</option><option>Kepri</option><option>Nasional</option>
+    </select>
+    <button class="btn-clear" onclick="clearFilters()">✕ Reset</button>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item active" onclick="setLoc('')" id="tab-all">
+    <div class="num" id="s-total">–</div>
+    <div class="lbl">Semua</div>
+  </div>
+  <div class="stat-item" onclick="setLoc('Medan')" id="tab-Medan">
+    <div class="num" id="s-Medan">–</div>
+    <div class="lbl">Medan</div>
+  </div>
+  <div class="stat-item" onclick="setLoc('Riau')" id="tab-Riau">
+    <div class="num" id="s-Riau">–</div>
+    <div class="lbl">Riau</div>
+  </div>
+  <div class="stat-item" onclick="setLoc('Kepri')" id="tab-Kepri">
+    <div class="num" id="s-Kepri">–</div>
+    <div class="lbl">Kepri</div>
+  </div>
+  <div class="stat-item" onclick="setLoc('Nasional')" id="tab-Nasional">
+    <div class="num" id="s-Nasional">–</div>
+    <div class="lbl">Nasional</div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <div class="result-bar">
+    <p class="result-info" id="resultInfo"></p>
+    <div class="view-toggle">
+      <button class="vtbtn active" id="vt-cards" onclick="setView('cards')" title="Tampilan kartu">⊞</button>
+      <button class="vtbtn" id="vt-list" onclick="setView('list')" title="Tampilan tabel">☰</button>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards-view" id="cardsView">
+    <div class="cards-grid" id="cardsGrid">
+      <div style="grid-column:1/-1">
+        <div class="state-box">
+          <span class="icon">⏳</span>
+          <div class="title">Memuat data...</div>
+          <p class="desc">Mengambil data vendor dari Google Sheets</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div class="list-view" id="listView">
+    <div class="list-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44px">#</th>
+            <th>Nama Vendor</th>
+            <th>Wilayah</th>
+            <th>Produk / Jasa</th>
+            <th>Estimasi Harga</th>
+          </tr>
+        </thead>
+        <tbody id="listBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  © 2025 Politeknik Caltex Riau — Database Vendor Pengadaan Barang
+</footer>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjOpOla9lb9qqODBLxQYdhx61CBCZOXNKTMxg2WN0Mdgn8ePtunc1y2VPSwonXtl87/exec";
+let vendors = [];
+let currentView = 'cards';
+
+/* ── LOAD ── */
+async function loadData() {
+  showLoading();
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); } catch(e) { throw new Error('Response bukan JSON'); }
+    vendors = json.data || json.vendors || (Array.isArray(json) ? json : []);
+    updateStats();
+    render();
+  } catch(e) {
+    showError(e.message);
+  }
+}
+
+function showLoading() {
+  document.getElementById('cardsGrid').innerHTML = `
+    <div style="grid-column:1/-1">
+      <div class="state-box">
+        <span class="icon">⏳</span>
+        <div class="title">Memuat data...</div>
+        <p class="desc">Mengambil data vendor dari Google Sheets</p>
+      </div>
+    </div>`;
+  document.getElementById('listBody').innerHTML =
+    '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">⏳ Memuat data...</td></tr>';
+  document.getElementById('resultInfo').textContent = '';
+}
+
+function showError(msg) {
+  document.getElementById('cardsGrid').innerHTML = `
+    <div style="grid-column:1/-1">
+      <div class="state-box">
+        <span class="icon">❌</span>
+        <div class="title">Gagal Memuat Data</div>
+        <p class="desc">
+          Error: ${msg}<br><br>
+          Pastikan Google Apps Script sudah di-deploy dengan akses <strong>Anyone</strong>.
+        </p>
+        <button class="retry-btn" onclick="loadData()">↺ Coba Lagi</button>
+      </div>
+    </div>`;
+}
+
+/* ── STATS ── */
+function updateStats() {
+  document.getElementById('s-total').textContent = vendors.length;
+  ['Medan','Riau','Kepri','Nasional'].forEach(loc =>
+    document.getElementById('s-' + loc).textContent = vendors.filter(v => v.location === loc).length
+  );
+}
+
+/* ── RENDER ── */
+function render() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const loc = document.getElementById('filterLoc').value;
+
+  const list = vendors.filter(v => {
+    const mq = !q || (v.name||'').toLowerCase().includes(q) || (v.product||'').toLowerCase().includes(q);
+    const ml = !loc || v.location === loc;
+    return mq && ml;
+  });
+
+  document.getElementById('resultInfo').innerHTML =
+    `Menampilkan <b>${list.length}</b> dari <b>${vendors.length}</b> vendor`;
+
+  if (!list.length) {
+    const empty = `
+      <div style="grid-column:1/-1">
+        <div class="state-box">
+          <span class="icon">🔍</span>
+          <div class="title">Tidak ditemukan</div>
+          <p class="desc">Tidak ada vendor yang cocok dengan pencarian Anda.<br>Coba ubah kata kunci atau filter.</p>
+        </div>
+      </div>`;
+    document.getElementById('cardsGrid').innerHTML = empty;
+    document.getElementById('listBody').innerHTML =
+      '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)">🔍 Tidak ada hasil</td></tr>';
+    return;
+  }
+
+  // Cards
+  document.getElementById('cardsGrid').innerHTML = list.map(v => `
+    <div class="vendor-card">
+      <div class="card-header">
+        <div class="card-name">${x(v.name)}</div>
+        <div class="card-loc">📍 ${x(v.location)}</div>
+      </div>
+      <div class="card-product">${x(v.product)}</div>
+      <div class="card-price-box">
+        <div class="card-price-label">Estimasi Harga</div>
+        <div class="card-price-value">${priceCard(v)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // List
+  document.getElementById('listBody').innerHTML = list.map((v,i) => `
+    <tr>
+      <td class="td-num">${i+1}</td>
+      <td class="td-name">${x(v.name)}</td>
+      <td><span class="loc-badge">📍 ${x(v.location)}</span></td>
+      <td class="td-prod">${x(v.product)}</td>
+      <td class="td-price">${priceTable(v)}</td>
+    </tr>
+  `).join('');
+}
+
+function priceCard(v) {
+  if (!v.priceMin && !v.priceMax) return '<span style="color:var(--muted)">Hubungi vendor</span>';
+  let s = v.priceMin && v.priceMax ? `${x(v.priceMin)} – ${x(v.priceMax)}` : x(v.priceMin || v.priceMax);
+  return v.unit ? `${s}<span class="price-unit">/ ${x(v.unit)}</span>` : s;
+}
+function priceTable(v) {
+  if (!v.priceMin && !v.priceMax) return '<span style="color:var(--muted)">–</span>';
+  let s = v.priceMin && v.priceMax ? `${v.priceMin} – ${v.priceMax}` : (v.priceMin || v.priceMax);
+  return v.unit ? `${s} / ${v.unit}` : s;
+}
+function x(s) {
+  return String(s||'–').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── FILTERS ── */
+function setLoc(loc) {
+  document.getElementById('filterLoc').value = loc;
+  document.querySelectorAll('.stat-item').forEach(el => el.classList.remove('active'));
+  const tabId = loc ? 'tab-' + loc : 'tab-all';
+  document.getElementById(tabId).classList.add('active');
+  render();
+}
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  setLoc('');
+}
+
+/* ── VIEW TOGGLE ── */
+function setView(v) {
+  currentView = v;
+  document.getElementById('cardsView').classList.toggle('hidden', v !== 'cards');
+  document.getElementById('listView').classList.toggle('active', v === 'list');
+  document.getElementById('vt-cards').classList.toggle('active', v === 'cards');
+  document.getElementById('vt-list').classList.toggle('active', v === 'list');
+}
+
+/* ── INIT ── */
+loadData();
+</script>
+</body>
+</html>
